@@ -1,29 +1,12 @@
-# Byte-compiled / optimized / DLL files
 __pycache__/
 *.py[cod]
 *$py.class
-
-# Pytest
-.pytest_cache/
-.coverage
-htmlcov/
-
-# Environments
-.venv/
-venv/
-ENV/
-env/
-
-# Editor & OS files
-.vscode/
-.idea/
-*.swp
-*.swo
-*~
+weather_cache.json
+nws_alert_cache.json
 .DS_Store
 Thumbs.db
-
-# Live journal logs
-panel_events.jsonl
-panel_health.jsonl
-panel_gate.off
+._*
+.lgd-nfy*
+log/
+*.bak
+.agents/
