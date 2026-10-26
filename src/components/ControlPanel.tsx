@@ -51,10 +51,21 @@ export const ControlPanel: React.FC<ControlPanelProps> = ({
     key: K,
     val: Settings['display'][K]
   ) => {
-    setFormData((prev) => ({
-      ...prev,
-      display: { ...prev.display, [key]: val },
-    }));
+    if (key === 'rotation') {
+      try {
+        localStorage.setItem('g4cast_rotation_explicit', 'true');
+      } catch {
+        // Ignore
+      }
+    }
+    setFormData((prev) => {
+      const updated = {
+        ...prev,
+        display: { ...prev.display, [key]: val },
+      };
+      onUpdateSettings(updated);
+      return updated;
+    });
   };
 
   const handleQuietChange = <K extends keyof Settings['quiet_hours']>(
@@ -133,15 +144,19 @@ export const ControlPanel: React.FC<ControlPanelProps> = ({
 
   const selectLocation = (city: string, country: string, displayName: string) => {
     const full = country ? `${displayName}, ${country}` : displayName;
-    setFormData((prev) => ({
-      ...prev,
-      weather: {
-        ...prev.weather,
-        city: full,
-        display_text: displayName,
-      },
-    }));
-    onShowToast(`Selected ${displayName}. Click "Save Weather Settings" to apply.`);
+    setFormData((prev) => {
+      const updated: Settings = {
+        ...prev,
+        weather: {
+          ...prev.weather,
+          city: full,
+          display_text: displayName,
+        },
+      };
+      onUpdateSettings(updated);
+      return updated;
+    });
+    onShowToast(`Selected ${displayName}. Location and weather preview updated.`);
   };
 
   // Export JSON
@@ -389,7 +404,7 @@ export const ControlPanel: React.FC<ControlPanelProps> = ({
             </div>
 
             <div className="form-group">
-              <label htmlFor="cfg_rotation">Panel Rotation</label>
+              <label htmlFor="cfg_rotation">Physical Panel Hardware Mounting</label>
               <select
                 id="cfg_rotation"
                 value={formData.display.rotation}
@@ -397,8 +412,8 @@ export const ControlPanel: React.FC<ControlPanelProps> = ({
                   handleDisplayChange('rotation', Number(e.target.value) as 0 | 180)
                 }
               >
-                <option value="0">0° (Standard)</option>
-                <option value="180">180° (Inverted Cable)</option>
+                <option value="0">0° (Standard Upright)</option>
+                <option value="180">180° (Inverted Cable Case)</option>
               </select>
             </div>
 

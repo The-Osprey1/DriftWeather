@@ -20,7 +20,7 @@ export function App() {
           ...DEFAULT_SETTINGS,
           ...parsed,
           weather: { ...DEFAULT_SETTINGS.weather, ...(parsed.weather || {}) },
-          display: { ...DEFAULT_SETTINGS.display, ...(parsed.display || {}) },
+          display: { ...DEFAULT_SETTINGS.display, ...(parsed.display || {}), rotation: 0 },
           quiet_hours: { ...DEFAULT_SETTINGS.quiet_hours, ...(parsed.quiet_hours || {}) },
           network: { ...DEFAULT_SETTINGS.network, ...(parsed.network || {}) },
         };
@@ -162,6 +162,27 @@ export function App() {
       displayToast('Wi-Fi link re-established. Signal optimal.');
     }, 1800);
   };
+
+  // Ensure legacy rotation in localStorage is reset so preview is never upside down
+  useEffect(() => {
+    try {
+      localStorage.removeItem('g4cast_rotation_explicit');
+      const saved = localStorage.getItem('g4cast_settings');
+      if (saved) {
+        const parsed = JSON.parse(saved);
+        if (parsed.display?.rotation !== 0) {
+          parsed.display = { ...parsed.display, rotation: 0 };
+          localStorage.setItem('g4cast_settings', JSON.stringify(parsed));
+          setSettings((prev) => ({
+            ...prev,
+            display: { ...prev.display, rotation: 0 },
+          }));
+        }
+      }
+    } catch {
+      // Ignore
+    }
+  }, []);
 
   // Update minute timer for sync age
   useEffect(() => {

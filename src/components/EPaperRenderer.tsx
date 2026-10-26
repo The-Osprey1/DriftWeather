@@ -83,13 +83,7 @@ export const EPaperRenderer = forwardRef<EPaperRendererRef, EPaperRendererProps>
       }
 
       ctx.save();
-
-      // Rotation
-      if (settings.display.rotation === 180) {
-        ctx.translate(W, H);
-        ctx.rotate(Math.PI);
-      }
-
+      // Canvas is rendered in standard upright orientation (0°) for crystal-clear readability
       // Base Palette (Monochrome 1-bit style)
       const isDark = isDarkEffective;
       const bg = isDark ? '#000000' : '#ffffff';
@@ -124,6 +118,8 @@ export const EPaperRenderer = forwardRef<EPaperRendererRef, EPaperRendererProps>
         day: 'numeric',
       });
 
+      const hasAlert = !!(weather.alertBanner && weather.alertBanner.active);
+
       // ==========================================
       // STYLE 1: CLASSIC
       // ==========================================
@@ -149,6 +145,9 @@ export const EPaperRenderer = forwardRef<EPaperRendererRef, EPaperRendererProps>
         ctx.font = `bold ${heroFontPt}px -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif`;
         const tempText = `${weather.currentTemp}${degSymbol}`;
         ctx.fillText(tempText, 32, 175);
+
+        // Weather Icon beside hero temperature
+        drawWeatherIcon(ctx, weather.condition, 205, 145, 36, fg);
 
         ctx.font = 'bold 18px -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif';
         ctx.fillText(`${weather.condition}`, 32, 210);
@@ -220,7 +219,8 @@ export const EPaperRenderer = forwardRef<EPaperRendererRef, EPaperRendererProps>
           fg,
           subtleLine,
           isDark,
-          degSymbol
+          degSymbol,
+          hasAlert
         );
       }
 
@@ -243,6 +243,8 @@ export const EPaperRenderer = forwardRef<EPaperRendererRef, EPaperRendererProps>
         drawCardBorder(ctx, 32, 85, 240, 140, fg, isDark);
         ctx.font = `bold ${heroFontPt - 6}px -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif`;
         ctx.fillText(`${weather.currentTemp}${degSymbol}`, 48, 165);
+        drawWeatherIcon(ctx, weather.condition, 215, 145, 30, fg);
+
         ctx.font = 'bold 15px -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif';
         ctx.fillText(`${weather.condition}`, 48, 195);
         ctx.font = '12px -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif';
@@ -292,7 +294,8 @@ export const EPaperRenderer = forwardRef<EPaperRendererRef, EPaperRendererProps>
           fg,
           subtleLine,
           isDark,
-          degSymbol
+          degSymbol,
+          hasAlert
         );
       }
 
@@ -315,6 +318,8 @@ export const EPaperRenderer = forwardRef<EPaperRendererRef, EPaperRendererProps>
 
         ctx.font = `bold ${heroFontPt}px -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif`;
         ctx.fillText(`${weather.currentTemp}${degSymbol}`, 28, 200);
+
+        drawWeatherIcon(ctx, weather.condition, 220, 175, 34, bg);
 
         ctx.font = 'bold 18px -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif';
         ctx.fillText(weather.condition, 28, 235);
@@ -372,7 +377,8 @@ export const EPaperRenderer = forwardRef<EPaperRendererRef, EPaperRendererProps>
           fg,
           subtleLine,
           isDark,
-          degSymbol
+          degSymbol,
+          hasAlert
         );
       }
 
@@ -402,6 +408,7 @@ export const EPaperRenderer = forwardRef<EPaperRendererRef, EPaperRendererProps>
         // Center Hero
         ctx.font = `bold ${heroFontPt}px -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif`;
         ctx.fillText(`${weather.currentTemp}${degSymbol}`, 40, 175);
+        drawWeatherIcon(ctx, weather.condition, 205, 145, 36, fg);
 
         ctx.font = 'bold 17px -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif';
         ctx.fillText(weather.condition.toUpperCase(), 40, 206);
@@ -437,15 +444,16 @@ export const EPaperRenderer = forwardRef<EPaperRendererRef, EPaperRendererProps>
           75,
           fg,
           isDark,
-          degSymbol
+          degSymbol,
+          hasAlert
         );
       }
 
       // ==========================================
       // SEVERE WEATHER ALERT BANNER (Bottom bar)
-      // Geometry: [320, 436, 764, 460] (or full width if minimalist/widgets)
+      // Geometry: [320, 436, 764, 460]
       // ==========================================
-      if (weather.alertBanner && weather.alertBanner.active) {
+      if (hasAlert && weather.alertBanner) {
         const bx = style === 'classic' || style === 'dualtone' ? 320 : 180;
         const by = 436;
         const bw = 764 - bx;
@@ -561,6 +569,115 @@ function drawCornerMark(ctx: CanvasRenderingContext2D, cx: number, cy: number) {
   ctx.stroke();
 }
 
+/**
+ * 1-Bit Vector Monochrome Weather Icon
+ */
+function drawWeatherIcon(
+  ctx: CanvasRenderingContext2D,
+  condition: string,
+  cx: number,
+  cy: number,
+  size: number,
+  color: string
+) {
+  ctx.save();
+  ctx.strokeStyle = color;
+  ctx.fillStyle = color;
+  ctx.lineWidth = 2;
+  ctx.lineCap = 'round';
+  ctx.lineJoin = 'round';
+
+  const cond = condition.toLowerCase();
+
+  if (cond.includes('sun') || cond.includes('clear')) {
+    // Sun circle
+    const r = size * 0.32;
+    ctx.beginPath();
+    ctx.arc(cx, cy, r, 0, Math.PI * 2);
+    ctx.stroke();
+
+    // Radiant Rays
+    const rayLen = size * 0.18;
+    const rayDist = r + 4;
+    for (let i = 0; i < 8; i++) {
+      const angle = (i * Math.PI) / 4;
+      const x1 = cx + Math.cos(angle) * rayDist;
+      const y1 = cy + Math.sin(angle) * rayDist;
+      const x2 = cx + Math.cos(angle) * (rayDist + rayLen);
+      const y2 = cy + Math.sin(angle) * (rayDist + rayLen);
+      ctx.beginPath();
+      ctx.moveTo(x1, y1);
+      ctx.lineTo(x2, y2);
+      ctx.stroke();
+    }
+  } else if (cond.includes('rain') || cond.includes('drizzle')) {
+    // Cloud
+    drawCloudShape(ctx, cx, cy - 4, size * 0.8);
+    // Raindrops
+    ctx.lineWidth = 1.6;
+    for (let i = -1; i <= 1; i++) {
+      const rx = cx + i * (size * 0.24);
+      const ry = cy + size * 0.22;
+      ctx.beginPath();
+      ctx.moveTo(rx + 2, ry);
+      ctx.lineTo(rx - 2, ry + size * 0.2);
+      ctx.stroke();
+    }
+  } else if (cond.includes('snow')) {
+    // Snowflake
+    const r = size * 0.4;
+    for (let i = 0; i < 3; i++) {
+      const angle = (i * Math.PI) / 3;
+      ctx.beginPath();
+      ctx.moveTo(cx - Math.cos(angle) * r, cy - Math.sin(angle) * r);
+      ctx.lineTo(cx + Math.cos(angle) * r, cy + Math.sin(angle) * r);
+      ctx.stroke();
+    }
+  } else if (cond.includes('wind') || cond.includes('breez')) {
+    // Wind lines
+    for (let i = -1; i <= 1; i++) {
+      const wy = cy + i * 8;
+      ctx.beginPath();
+      ctx.moveTo(cx - size * 0.4, wy);
+      ctx.lineTo(cx + size * 0.2, wy);
+      ctx.arc(cx + size * 0.2, wy - 4, 4, Math.PI / 2, -Math.PI / 2, true);
+      ctx.stroke();
+    }
+  } else {
+    // Cloud (Overcast / Partly Cloudy / Default)
+    drawCloudShape(ctx, cx, cy, size);
+    if (cond.includes('partly')) {
+      // Small sun peeking behind
+      ctx.beginPath();
+      ctx.arc(cx - size * 0.25, cy - size * 0.25, size * 0.18, 0, Math.PI * 2);
+      ctx.stroke();
+    }
+  }
+
+  ctx.restore();
+}
+
+function drawCloudShape(
+  ctx: CanvasRenderingContext2D,
+  cx: number,
+  cy: number,
+  size: number
+) {
+  const w = size * 0.85;
+  const h = size * 0.45;
+  const left = cx - w / 2;
+  const bottom = cy + h / 2;
+
+  ctx.beginPath();
+  ctx.moveTo(left + 8, bottom);
+  ctx.lineTo(left + w - 8, bottom);
+  ctx.arc(left + w - 8, bottom - 8, 8, Math.PI / 2, -Math.PI / 4, true);
+  ctx.arc(cx + 4, cy - 4, size * 0.26, 0, -Math.PI, true);
+  ctx.arc(left + 10, bottom - 10, 10, -Math.PI / 2, Math.PI / 2, true);
+  ctx.closePath();
+  ctx.stroke();
+}
+
 function drawSplineGraph(
   ctx: CanvasRenderingContext2D,
   hourly: WeatherData['hourly'],
@@ -620,7 +737,7 @@ function drawSplineGraph(
   ctx.stroke();
 
   // Draw point dots, temperature numbers, and time labels
-  points.forEach((p, i) => {
+  points.forEach((p) => {
     // Circle dot
     ctx.fillStyle = fg;
     ctx.beginPath();
@@ -648,7 +765,8 @@ function drawDailyForecastColumns(
   fg: string,
   subtleLine: string,
   isDark: boolean,
-  deg: string
+  deg: string,
+  hasAlert: boolean = false
 ) {
   if (!daily || daily.length === 0) return;
   const colW = w / daily.length;
@@ -661,18 +779,17 @@ function drawDailyForecastColumns(
     ctx.textAlign = 'center';
     ctx.fillText(d.dayName, cx, y + 20);
 
-    // Condition
-    ctx.font = '12px -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif';
-    ctx.fillText(d.condition, cx, y + 42);
+    // Icon
+    drawWeatherIcon(ctx, d.condition, cx, y + 42, 22, fg);
 
     // High / Low
     ctx.font = 'bold 14px -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif';
-    ctx.fillText(`${d.maxTemp}${deg} / ${d.minTemp}${deg}`, cx, y + 66);
+    ctx.fillText(`${d.maxTemp}${deg} / ${d.minTemp}${deg}`, cx, y + 68);
 
-    // PoP Rain Chance
-    if (d.pop > 0) {
+    // PoP Rain Chance - Suppressed when alert banner is active to prevent collision
+    if (!hasAlert && d.pop > 0) {
       ctx.font = '11px -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif';
-      ctx.fillText(`☂ ${d.pop}%`, cx, y + 84);
+      ctx.fillText(`☂ ${d.pop}%`, cx, y + 86);
     }
 
     // Column separator
@@ -697,7 +814,8 @@ function drawDailyForecastCards(
   fg: string,
   subtleLine: string,
   isDark: boolean,
-  deg: string
+  deg: string,
+  hasAlert: boolean = false
 ) {
   const gap = 12;
   const cardW = (w - gap * (daily.length - 1)) / daily.length;
@@ -708,13 +826,17 @@ function drawDailyForecastCards(
 
     ctx.font = 'bold 14px -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif';
     ctx.textAlign = 'center';
-    ctx.fillText(d.dayName, cx + cardW / 2, y + 26);
+    ctx.fillText(d.dayName, cx + cardW / 2, y + 22);
 
-    ctx.font = '12px -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif';
-    ctx.fillText(d.condition, cx + cardW / 2, y + 48);
+    drawWeatherIcon(ctx, d.condition, cx + cardW / 2, y + 44, 20, fg);
 
     ctx.font = 'bold 13px -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif';
-    ctx.fillText(`${d.maxTemp}${deg} / ${d.minTemp}${deg}`, cx + cardW / 2, y + 74);
+    ctx.fillText(`${d.maxTemp}${deg} / ${d.minTemp}${deg}`, cx + cardW / 2, y + 70);
+
+    if (!hasAlert && d.pop > 0) {
+      ctx.font = '10px -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif';
+      ctx.fillText(`☂ ${d.pop}%`, cx + cardW / 2, y + 84);
+    }
   });
 }
 
@@ -727,7 +849,8 @@ function drawDailyChiclets(
   h: number,
   fg: string,
   isDark: boolean,
-  deg: string
+  deg: string,
+  hasAlert: boolean = false
 ) {
   const gap = 14;
   const cardW = (w - gap * (daily.length - 1)) / daily.length;
@@ -739,16 +862,18 @@ function drawDailyChiclets(
     ctx.lineWidth = 1.2;
     drawRoundedRect(ctx, cx, y, cardW, h, 6, false, true);
 
-    ctx.font = 'bold 14px -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, monospace';
+    ctx.font = 'bold 13px -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, monospace';
     ctx.textAlign = 'center';
-    ctx.fillText(d.dayName.toUpperCase(), cx + cardW / 2, y + 24);
+    ctx.fillText(d.dayName.toUpperCase(), cx + cardW / 2, y + 20);
 
-    ctx.font = 'bold 14px -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, monospace';
-    ctx.fillText(`${d.maxTemp}${deg} | ${d.minTemp}${deg}`, cx + cardW / 2, y + 48);
+    drawWeatherIcon(ctx, d.condition, cx + cardW / 2, y + 38, 18, fg);
 
-    if (d.pop > 0) {
+    ctx.font = 'bold 13px -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, monospace';
+    ctx.fillText(`${d.maxTemp}${deg} | ${d.minTemp}${deg}`, cx + cardW / 2, y + 58);
+
+    if (!hasAlert && d.pop > 0) {
       ctx.font = '10px -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, monospace';
-      ctx.fillText(`${d.pop}% POP`, cx + cardW / 2, y + 64);
+      ctx.fillText(`${d.pop}%`, cx + cardW / 2, y + 70);
     }
   });
 }
