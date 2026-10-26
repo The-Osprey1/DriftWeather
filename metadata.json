@@ -1,0 +1,6 @@
+{
+  "name": "G4Cast E-Paper Weather Station",
+  "description": "Interactive control panel and pixel-perfect e-paper display simulator for the G4Cast 800x480 monochrome weather station.",
+  "permissions": [],
+  "capabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
+}
