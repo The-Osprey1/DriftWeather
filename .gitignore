@@ -10,3 +10,13 @@ Thumbs.db
 log/
 *.bak
 .agents/
+
+# React simulator
+node_modules/
+dist/
+.env.local
+.env.*.local
+
+# Station device-local state (written by the Pi; holds the API key)
+station/config/settings.json
+!station/tests/fixtures/weather_cache.json

@@ -4,7 +4,7 @@ export const DEFAULT_SETTINGS: Settings = {
   weather: {
     city: 'Eastvale, US',
     display_text: 'Eastvale',
-    api_key: '03e1c360794791f241cdd9630f0df7fb',
+    api_key: import.meta.env.VITE_OPENWEATHER_API_KEY ?? '',
     use_metric: false,
     use_kcno: true,
     kcno_station: 'KCNO',
