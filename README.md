@@ -1,4 +1,33 @@
-# G4Cast E-Paper Weather Station (React & TypeScript)
+# DriftWeather / G4Cast E-Paper Weather Station
+
+G4Cast is an 800×480 Waveshare 7.5" V2 monochrome e-paper weather station on a
+Raspberry Pi Zero 2 W. This repository holds both halves of it:
+
+| Path | What it is |
+| --- | --- |
+| `station/` | The Python program that runs on the Pi: PIL renderer, weather/AQI/NWS providers, scheduler, Wi-Fi watchdog, Flask control panel (port 8080), tests. Deployed to `/home/user/G4Cast` on the Pi. |
+| `src/`, `public/`, `index.html` | The React/Vite web simulator and control-panel mock (below). |
+| `hardware/` | 3D-printable enclosure (`G4Cast.3mf`) and the software install guide (PDF). |
+| `docs/` | `OPERATIONS.md` runbook and theme previews. |
+
+The OpenWeather API key is never committed. On the Pi it lives in
+`station/config/settings.json`, which is created on the device and ignored by
+git; `default_settings.json` ships with an empty key. The simulator reads
+`VITE_OPENWEATHER_API_KEY` from `.env.local` (see `.env.example`).
+
+## Station (Raspberry Pi)
+
+```bash
+cd station
+python3 -m unittest discover tests   # mocked test suite
+python3 main.py                      # display loop + web panel
+```
+
+Fresh-Pi setup (SPI, `fonts-inter`, Waveshare driver, systemd service) is in
+`station/RESTORE.md`; day-to-day operation and OverlayFS persistence are in
+`docs/OPERATIONS.md`.
+
+## Web simulator (React & TypeScript)
 
 A modern, high-contrast Web Control Panel and pixel-perfect 800×480 Waveshare 7.5" V2 monochrome e-paper display simulator for the G4Cast weather station.
 

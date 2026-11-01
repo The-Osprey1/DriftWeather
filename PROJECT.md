@@ -65,6 +65,8 @@ The software architecture consists of:
 - `POST /api/alert/clear` -> Clears simulated alert, restores normal display.
 
 ## Code Layout
+All paths below are under `station/` in this repository (deployed to `/home/user/G4Cast` on the Pi).
+
 - `display/`: `renderer.py` (PIL rendering, layout coordinates), `epaper.py` (hardware driver).
 - `weather/`: `providers.py` (OpenWeather, NWS, KCNO), `cache.py` (JSON caching).
 - `config/`: `settings.py` (configuration manager, schema validation, OverlayFS persistence), `settings.json`.
